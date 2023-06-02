@@ -5,3 +5,4 @@ dataclass-wizard
 certifi
 platformdirs
 requests
+aiohttp
