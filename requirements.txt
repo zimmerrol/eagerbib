@@ -4,3 +4,4 @@ textual
 dataclass-wizard
 certifi
 platformdirs
+requests

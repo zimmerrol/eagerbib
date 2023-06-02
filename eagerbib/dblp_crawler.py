@@ -13,10 +13,11 @@ from typing import Optional
 
 import requests
 import tqdm
-import argparse
-import eagerbib.utils as ut
 import os
 import eagerbib.config as cfg
+from eagerbib.main import load_reference_bibliography
+import tarfile
+import glob
 
 
 def get_all_occurrences_of_venue(venue_key: str) -> list[Optional[str]]:
@@ -215,6 +216,17 @@ def main():
         ):
             with redirect_to_tqdm():
                 download_bibtex_of_venue_occurrence(oc, config.output)
+
+    print("Creating cache.json.gz file.")
+    load_reference_bibliography(config.output)
+
+    if config.create_targz:
+        print("Creating tar.gz file.")
+        with tarfile.open(config.output + ".tar.gz", "w:gz") as tar:
+            for fn in glob.glob(os.path.join(config.output, "*.bib")):
+                tar.add(fn, arcname=os.path.basename(fn))
+            tar.add(os.path.join(config.output, "cache.json.gz"),
+                    arcname="cache.json.gz")
 
 
 if __name__ == "__main__":

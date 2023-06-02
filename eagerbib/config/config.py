@@ -84,6 +84,9 @@ class DBLPCrawlerConfig(BaseConfig):
     venues: list[str] = ut.cli_parameter(
         "v", default_factory=list, help="The DBLP identifiers of the venues to crawl.")
     output: str = ut.cli_parameter("o", required=True, help="The output directory.")
+    create_targz: bool = ut.cli_parameter(
+        "t", default=True, help="True to create a tar.gz file from the output "
+                                "directory. For easier distribution.")
 
 
 @dataclasses.dataclass
