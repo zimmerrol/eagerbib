@@ -1,7 +1,7 @@
 tqdm
 bibtexparser
 textual
-dataclass-wizard
+dataclass-wizard[yaml]
 certifi
 platformdirs
 requests
