@@ -16,6 +16,7 @@ import tqdm
 import argparse
 import eagerbib.utils as ut
 import os
+import eagerbib.config as cfg
 
 
 def get_all_occurrences_of_venue(venue_key: str) -> list[Optional[str]]:
@@ -190,25 +191,21 @@ def get_bht_identifier_from_dblp_url(
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--venue", "-v", nargs="+", type=str)
-    parser.add_argument("--output", "-o", type=str,
-                        default=ut.get_default_data_directory())
-    args = parser.parse_args()
+    config = cfg.get_config(cfg.DBLPCrawlerConfig)
 
     print("Crawling dblp.org for information on the following venues: "
-          f"{', '.join(args.venues)}.")
+          f"{', '.join(config.venues)}.")
 
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
+    if not os.path.exists(config.output):
+        os.makedirs(config.output)
     else:
-        if len(os.listdir(args.output)) > 0:
+        if len(os.listdir(config.output)) > 0:
             warnings.warn(
-                f"Output directory `{args.output}` is not empty. "
+                f"Output directory `{config.output}` is not empty. "
                 "Existing files might be overwritten."
             )
 
-    for venue in tqdm.tqdm(args.venues, desc="Processing venues", position=0):
+    for venue in tqdm.tqdm(config.venues, desc="Processing venues", position=0):
         occurrences = get_all_occurrences_of_venue(venue)
         # Filter out None values for which no BHT key could be extracted.
         # This should rarely/never happen.
@@ -217,8 +214,9 @@ def main():
             occurrences, desc="Downloading BibTex data", position=1, leave=False
         ):
             with redirect_to_tqdm():
-                download_bibtex_of_venue_occurrence(oc, args.output)
+                download_bibtex_of_venue_occurrence(oc, config.output)
 
 
 if __name__ == "__main__":
     main()
+

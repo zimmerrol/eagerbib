@@ -74,7 +74,20 @@ class OutputProcessorConfig:
 
 
 @dataclasses.dataclass
-class MainConfig(dataclass_wizard.YAMLWizard):
+class BaseConfig(dataclass_wizard.YAMLWizard):
+    pass
+
+
+@dataclasses.dataclass
+class DBLPCrawlerConfig(BaseConfig):
+    """A config object for the DBLP crawler."""
+    venues: list[str] = ut.cli_parameter(
+        "v", default_factory=list, help="The DBLP identifiers of the venues to crawl.")
+    output: str = ut.cli_parameter("o", required=True, help="The output directory.")
+
+
+@dataclasses.dataclass
+class MainConfig(BaseConfig):
     """A config object that can be accessed like a dictionary or an object."""
 
     input: str = ut.cli_parameter("i", required=True, help="The input bib file.")

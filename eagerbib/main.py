@@ -229,7 +229,9 @@ def process_bibliography_offline(
 
 
 def main():
-    config = cfg.get_config()
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    config = cfg.get_config(cfg.MainConfig,
+                            os.path.join(base_dir, "default_config.yaml"))
     reference_bibliography = load_reference_bibliography(config.bibliography_folder)
     input_bibliography = load_input_bibliography(config.input)
     processing_commands_offline = process_bibliography_offline(
