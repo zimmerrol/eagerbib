@@ -1,0 +1,105 @@
+YearTitleDisplay {
+    layout: horizontal;
+    margin-bottom: 1;
+}
+
+YearTitleDisplay > #year {
+    width: 4;
+    margin-right: 4
+}
+
+YearTitleDisplay > #title {
+    width: 1fr;
+}
+
+ReferenceDisplay {
+    max-width: 100;
+    padding: 0 2;
+    border: heavy $panel;
+    border-title-color: $text;
+    border-title-style: bold;
+}
+
+ReferenceDisplay > #author {
+    width: 1fr;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+ReferenceDisplay > #type {
+    width: 1fr;
+    color: $text-disabled;
+}
+
+ReferenceDisplay:focus-within {
+    background: $primary;
+    border-title-color: $secondary;
+    border: heavy $secondary-lighten-2;
+}
+
+ReferenceDisplay > Center > #choose {
+    border-top: tall $panel-lighten-2;
+    border-bottom: tall $panel-darken-3;
+}
+
+ReferenceDisplay > Center > #choose:focus {
+    background: $secondary;
+    border-top: tall $secondary-lighten-2;
+    border-bottom: tall $secondary-darken-3;
+}
+
+ReferenceDisplay > Center > #choose {
+    height: 3
+}
+
+ReferenceDisplay > #full-reference {
+    width: 1fr;
+    text-style: italic;
+    color: $text-disabled;
+}
+
+ReferencePicker {
+    layout: horizontal;
+    align-horizontal: center;
+    width: 1fr;
+    height: 1fr;
+}
+
+ReferencePicker > Middle > #current-reference {
+    align-vertical: middle;
+}
+
+ReferencePicker > Widget > #available-references {
+    width: 1fr;
+}
+
+ReferencePicker > #chosen-reference {
+    min-width: 30;
+}
+
+ReferencePicker > #references {
+    align: center middle;
+}
+
+ReferencePicker > .reference-picker-column-title {
+    color: $accent;
+    text-style: bold;
+}
+
+ProgressBar {
+    width: 1fr
+}
+
+ProgressBar > Horizontal {
+    dock: right;
+}
+
+ReferencePicker > .referencepicker-column {
+    width: 1fr;
+    max-width: 80;
+}
+
+ReferencePicker > .referencepicker-center-column {
+    margin-left: 1;
+    margin-right: 1;
+}

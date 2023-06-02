@@ -1,0 +1,59 @@
+online_updater:
+  enable: False
+  services:
+    - "crossref"
+    - "dblp"
+output_processor:
+  name_normalizations:
+    - name: "AAAI"
+      alternative_names:
+        - "Proceedings of the .*AAAI.* Conference on Artificial Intelligence"
+    - name: "ACL"
+      alternative_names:
+        - "Proceedings of the .* Annual Meeting of the Association for Computational Linguistics"
+    - name: "CVPR"
+      alternative_names:
+        - ".*IEEE/CVF Conference on Computer Vision and Pattern Recognition.*"
+        - ".*IEEE Computer Society Conference on Computer Vision and Pattern Recognition.*"
+    - name: "EMNLP"
+      alternative_names:
+        - "Proceedings of the .* Conference on Empirical Methods in Natural Language Processing"
+    - name: "KDD"
+      alternative_names:
+        - "The .* {ACM} {SIGKDD} International Conference on Knowledge Discovery"
+    - name: "ICDE"
+      alternative_names:
+        - ".*International Conference on Data Engineering.*"
+    - name: "ICML"
+      alternative_names:
+        - "Proceedings of the .* International Conference on Machine Learning.*"
+        - "Machine Learning, Proceedings of the .* International Conference"
+    - name: "ICLR"
+      alternative_names:
+        - ".* International Conference on Learning Representations"
+    - name: "ICRA"
+      alternative_names:
+        - "Proceedings of the .* {IEEE} International Conference on Robotics and Automation"
+        - ".* International Conference on Robotics and Automation"
+    - name: "INTERSPEECH"
+      alternative_names:
+        - "Interspeech .*Annual Conference of the International Speech.*"
+    - name: "NAACL-HLT"
+      alternative_names:
+        - "Proceedings of the .* Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies"
+    - name: "NeurIPS"
+      alternative_names:
+        - "Advances in Neural Information Processing Systems.*"
+        - "{?NIPS}?"
+    - name: "SIGIR"
+      alternative_names:
+        - ".*International {ACM} {SIGIR}.*"
+    - name: "SIGMOD"
+      alternative_names:
+        - "Proceedings of the .* International Conference on Management of Data, {SIGMOD} Conference"
+    - name: "TKDE"
+      alternative_names:
+        - "IEEE Transactions on Knowledge and Data Engineering"
+    - name: "WWW"
+      alternative_names:
+        - "{WWW} '.*: The Web Conference .*"

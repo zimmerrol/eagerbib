@@ -1,0 +1,6 @@
+tqdm
+bibtexparser
+textual
+dataclass-wizard
+certifi
+platformdirs
