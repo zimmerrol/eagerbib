@@ -104,6 +104,8 @@ class CrossrefLookupService(LookupService):
                     used_dois = set()
                     filtered_potential_items = []
                     for pi in potential_items:
+                        if pi is None:
+                            continue
                         if pi["doi"] in used_dois:
                             continue
                         else:

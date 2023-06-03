@@ -1,5 +1,5 @@
 online_updater:
-  enable: False
+  enable: True
   services:
     - "crossref"
     - "dblp"
