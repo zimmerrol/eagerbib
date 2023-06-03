@@ -1,11 +1,38 @@
 # eagerbib: Updating and normalizing your BibTex bibliography.
 
+## What is eagerbib?
+eagerbib is a command line tool to update and normalize your BibTeX bibliography.
+Specifically, you can use eagerbib to:
+- Update references in your BibTeX file to their latest versions (e.g., 
+  replace pre-prints with the final version)
+- Normalize your bibliography (e.g., shorten conference names, remove duplicates, etc.)
+
+For this, eagerbib uses a combination of offline and online methods. While the 
+_offline_ methods are fully automatic and do not require any manual work or supervision,
+the _online_ methods are only semi-automatic. That is, eagerbib will suggest possible
+updates to you, but you have to manually confirm them. To make this process as comfortable
+as possible, eagerbib features an easy to use interactive command line interface:
+
+![eagerbib demo](demo.gif)  
 
 
 ## Installation
 
+Install eagerbib via pip:
 ```bash
 pip install git+https://github.com/zimmerrol/eagerbib.git
+```
+
+To use the automated reference updater, you need to install a package of offline 
+candidate bibliography files.
+You can either compile your own list of bibliography files using `eagerbib-crawler` 
+(for advanced users) or rely on the precompiled list of bibliography files provided by
+[eagerbib-data](https://github.com/zimmerrol/eagerbib-data).
+
+For example, to install the package containing bibliography information of machine
+learning & computer vision conferences, run:
+```bash
+eagerbib-updater -b https://github.com/zimmerrol/eagerbib-data/raw/data/data/mlcv.tar.gz
 ```
 
 ## Usage
