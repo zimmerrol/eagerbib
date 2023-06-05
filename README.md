@@ -32,6 +32,11 @@ You can either compile your own list of bibliography files using `eagerbib-crawl
 For example, to install the package containing bibliography information of machine
 learning & computer vision conferences, run:
 ```bash
+eagerbib-updater -b mlcv
+```
+
+Alternatively, you can also pass a URL to a tar.gz file containing the bibliography:
+```bash
 eagerbib-updater -b https://github.com/zimmerrol/eagerbib-data/raw/data/data/mlcv.tar.gz
 ```
 

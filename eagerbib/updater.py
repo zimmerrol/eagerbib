@@ -13,8 +13,7 @@ import tqdm
 import eagerbib.utils as ut
 
 __predefined_bibliographies = {
-    "mlcv": "TODO",
-    "mlnlp": "TODO",
+    "mlcv": "https://github.com/zimmerrol/eagerbib-data/raw/data/data/mlcv.tar.gz",
 }
 
 
