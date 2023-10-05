@@ -43,8 +43,10 @@ def load_reference_bibliography(bibliography_dir: str) -> dict[str, list[str]]:
                 print("Failed to load cache.json as the file appears corrupted.")
             else:
                 if len(current_hashes) == 0:
-                    print("No BibTeX files found in the bibliography folder. "
-                          "Using pre-built cache.")
+                    print(
+                        "No BibTeX files found in the bibliography folder. "
+                        "Using pre-built cache."
+                    )
                     return cache["bibliographies"]
 
                 # Check if the hashes of the current files are consistent with those
@@ -113,7 +115,7 @@ def process_bibliography_online(
 
     n_parallel: int = config.n_parallel_requests
 
-    lookup_services = []
+    lookup_services: list[lus.LookupService] = []
     for service in list(set(config.services)):
         if service == "dblp":
             lookup_services.append(lus.DBLPLookupService())
@@ -150,8 +152,9 @@ def process_bibliography_online(
 
         return mru.ReferenceChoiceTask(cr, srs)
 
-    async def produce(queue: asyncio.Queue):
+    async def produce(queue: asyncio.Queue) -> None:
         # Add first rct separately to avoid waiting times at the beginning.
+        await queue.put(await get_reference_choice_task(input_bibliography[0]))
         for entry_chunks in ut.chunk_iterable(input_bibliography[1:], n_parallel):
             rcts = await asyncio.gather(
                 *[
@@ -175,10 +178,10 @@ def process_bibliography_online(
 
     queue: asyncio.Queue[mru.ReferenceChoiceTask] = asyncio.Queue(maxsize=buffer_size)
     mrfua = mru.ManualReferenceUpdaterApp(
-        get_reference_choice_task_generator(queue), len(input_bibliography)
+        get_reference_choice_task_generator(queue),
+        produce(queue),
+        len(input_bibliography),
     )
-    loop = asyncio.get_event_loop()
-    loop.create_task(produce(queue))
     choices: Optional[list[mru.ReferenceChoice]] = mrfua.run()
 
     output_commands: list[op.BaseProcessingCommand] = []
@@ -220,7 +223,8 @@ def process_bibliography_offline(
     output_commands: list[op.BaseProcessingCommand] = []
     for ir in input_bibliography:
         mor = copy.deepcopy(
-            offline_bibliography.get(ut.cleanup_title(ir["title"]), None))
+            offline_bibliography.get(ut.cleanup_title(ir["title"]), None)
+        )
         if mor is None:
             output_commands.append(op.KeepItemProcessingCommand(ir))
         else:
@@ -230,8 +234,9 @@ def process_bibliography_offline(
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    config = cfg.get_config(cfg.MainConfig,
-                            os.path.join(base_dir, "default_config.yaml"))
+    config = cfg.get_config(
+        cfg.MainConfig, os.path.join(base_dir, "default_config.yaml")
+    )
     reference_bibliography = load_reference_bibliography(config.bibliography_folder)
     input_bibliography = load_input_bibliography(config.input)
     processing_commands_offline = process_bibliography_offline(
@@ -258,8 +263,8 @@ def main():
     )
 
     op.write_output(
-        op.process_commands(processing_commands, config.output_processor),
-        config.output)
+        op.process_commands(processing_commands, config.output_processor), config.output
+    )
 
 
 if __name__ == "__main__":

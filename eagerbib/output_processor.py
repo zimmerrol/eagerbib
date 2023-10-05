@@ -80,7 +80,7 @@ def _normalize_preprints(entries: list[dict[str, str]]):
         entries (list[dict[str, str]]): The bibliography entries that will be updated
             in-place.
     """
-    print("Normalizing preprints:")
+    print("Normalizing preprints.")
     for i in range(len(entries)):
         entry = entries[i]
         entry_str = " ".join(transform_reference_dict_to_lines(entry)).lower()
