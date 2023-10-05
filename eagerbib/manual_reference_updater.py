@@ -1,8 +1,7 @@
 import asyncio
 import dataclasses
 import inspect
-from typing import (Any, AsyncGenerator, Callable, Coroutine, Generator,
-                    Optional, Union)
+from typing import Any, AsyncGenerator, Callable, Coroutine, Generator, Optional, Union
 
 from textual import events
 from textual.app import App, ComposeResult
@@ -10,11 +9,20 @@ from textual.containers import Center, Middle, ScrollableContainer
 from textual.css.query import NoMatches
 from textual.reactive import Reactive, reactive
 from textual.widget import Widget
-from textual.widgets import (Button, Footer, Label, LoadingIndicator,
-                             Placeholder, ProgressBar, Static)
+from textual.widgets import (
+    Button,
+    Footer,
+    Label,
+    LoadingIndicator,
+    Placeholder,
+    ProgressBar,
+    Static,
+)
 
 import eagerbib.output_processor as op
 import eagerbib.utils as ut
+
+# from textual import work
 
 
 @dataclasses.dataclass
@@ -52,7 +60,7 @@ class YearTitleDisplay(Static):
         self.year = year
         self.title = title
 
-    def _validate_year(self) -> str:
+    def _validate_year(self, *args, **kwargs) -> str:
         value = str(self.year)
 
         if value == "0":
@@ -206,15 +214,20 @@ class ReferenceDisplay(Static):
         if self.show_author:
             self.query_one("#author", expect_type=Label).update(self.reference.author)
         from rich.syntax import Syntax
+
         if self.show_full_reference:
             bibtex = "\n".join(
-                    op.transform_reference_dict_to_lines(
-                        self.reference.bibliography_values
-                    )
-                )
+                op.transform_reference_dict_to_lines(self.reference.bibliography_values)
+            )
             self.query_one("#full-reference", expect_type=Label).update(
-                Syntax(bibtex, "bibtex", theme="material", line_numbers=False,
-                       word_wrap=True, dedent=True)
+                Syntax(
+                    bibtex,
+                    "bibtex",
+                    theme="material",
+                    line_numbers=False,
+                    word_wrap=True,
+                    dedent=True,
+                )
             )
 
 
@@ -237,27 +250,33 @@ class ReferencePicker(Static):
                 ]
             ],
         ],
-        get_choice_fn: Callable[[ReferenceChoice], None],
+        set_choice_fn: Callable[[ReferenceChoice], None],
         show_chosen_reference_details: bool = True,
         **kwargs,
     ):
         Placeholder
         super().__init__(**kwargs)
         self.get_next_choice_task_fn = get_next_choice_task_fn
-        self.get_choice_fn = get_choice_fn
+        self.set_choice_fn = set_choice_fn
         self.show_chosen_reference_details = show_chosen_reference_details
 
     async def _refresh_choice_task(self) -> None:
+        print("parent", self.parent)
+        print("parent.children", self.parent.children)
         choice_task = await await_me_maybe(self.get_next_choice_task_fn)
         if choice_task is not None:
             self.available_references = choice_task.available_references
             self.current_reference = choice_task.current_reference
+            self.disabled = False
 
     async def _save_choice(self, reference: Reference) -> None:
+        if self.disabled:
+            return
+        self.disabled = True
         if self.current_reference is None:
             raise RuntimeError("No current reference to compare to.")
-
-        self.get_choice_fn(ReferenceChoice(self.current_reference, reference))
+        print("set result", self.current_reference)
+        self.set_choice_fn(ReferenceChoice(self.current_reference, reference))
         await await_me_maybe(self._refresh_choice_task)
 
     def compose(self) -> ComposeResult:
@@ -312,7 +331,9 @@ class ReferencePicker(Static):
         current.display = self.show_chosen_reference_details
 
     def on_descendant_focus(self, event: events.DescendantFocus):
-        if isinstance(event._sender.parent.parent, ReferenceDisplay):
+        if event._sender.parent is not None and isinstance(
+            event._sender.parent.parent, ReferenceDisplay
+        ):
             chosen_reference = event._sender.parent.parent.reference
             display = self.query_one("#chosen-reference", expect_type=ReferenceDisplay)
             display.reference = chosen_reference
@@ -359,8 +380,9 @@ class ReferencePicker(Static):
 
         references = self.query_one("#available-references")
         if references:
-            while len(references.children) > 0:
-                references.children[0].remove()
+            # while len(references.children) > 0:
+            #    references.children[0].remove()
+            references.children._clear()
 
             rfds = []
             for idx, rf in enumerate(self.available_references):
@@ -384,18 +406,22 @@ class ManualReferenceUpdaterApp(App):
 
     TITLE = "Reference Updater"
 
+    AUTO_FOCUS = None
+
     def __init__(
         self,
         choice_task_iterator: Union[
             Generator[ReferenceChoiceTask, None, None],
             AsyncGenerator[ReferenceChoiceTask, None],
         ],
-        n_tasks: Optional[int],
+        choice_task_generator: Optional[Coroutine[Any, Any, None]] = None,
+        n_tasks: Optional[int] = None,
     ):
         super().__init__()
         self.choice_task_iterator = choice_task_iterator
         self.choices: list[ReferenceChoice] = []
         self.n_tasks = n_tasks
+        self.choice_task_generator = choice_task_generator
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
@@ -403,31 +429,40 @@ class ManualReferenceUpdaterApp(App):
         async def get_next_choice_task_fn() -> Optional[ReferenceChoiceTask]:
             try:
                 choice_task = await anext_maybe(self.choice_task_iterator)
-                try:
-                    await self.query_one("#loadingindicator").remove()
+
+                pi = self.query_one("#loadingindicator", expect_type=LoadingIndicator)
+                if pi.display:
+                    pi.display = False
                     self.query_one("#referencepicker").visible = True
-                    self.query_one("#progressbar").visible = True
-                except NoMatches:
-                    pass
+                    self.query_one("#referencepicker").focus()
+                self.query_one("#progressbar").visible = True
+
             except (StopAsyncIteration, StopIteration):
                 self.exit(self.choices)
                 return None
             else:
                 return choice_task
 
-        def get_choice_fn(reference_choice: ReferenceChoice) -> None:
+        if self.choice_task_generator:
+            self.run_worker(self.choice_task_generator, exclusive=True)
+
+        def set_choice_fn(reference_choice: ReferenceChoice) -> None:
+            self.query_one(
+                "#loadingindicator", expect_type=LoadingIndicator
+            ).display = True
+            self.query_one("#referencepicker").visible = False
             self.choices.append(reference_choice)
             self.query_one("#progressbar", expect_type=ProgressBar).update(
                 progress=len(self.choices)
             )
 
-        pbar = ProgressBar(id="progressbar", total=self.n_tasks)
+        pbar = ProgressBar(id="progressbar", total=self.n_tasks, show_eta=False)
         pbar.visible = False
         yield pbar
         yield Footer()
         yield LoadingIndicator(id="loadingindicator")
         rp = ReferencePicker(
-            get_next_choice_task_fn, get_choice_fn, id="referencepicker"
+            get_next_choice_task_fn, set_choice_fn, id="referencepicker"
         )
         rp.visible = False
         yield rp
