@@ -60,9 +60,10 @@ class YearTitleDisplay(Static):
         self.year = year
         self.title = title
 
-    def _validate_year(self, *args, **kwargs) -> str:
+    @property
+    def _formatted_year(self) -> str:
         value = str(self.year)
-
+        
         if value == "0":
             value = ""
         return value
@@ -70,7 +71,7 @@ class YearTitleDisplay(Static):
     def watch_year(self) -> None:
         if not self.__composed:
             return
-        self.query_one("#year", expect_type=Label).update(self._validate_year())
+        self.query_one("#year", expect_type=Label).update(self._formatted_year)
 
     def watch_title(self) -> None:
         if not self.__composed:
@@ -78,7 +79,7 @@ class YearTitleDisplay(Static):
         self.query_one("#title", expect_type=Label).update(self.title)
 
     def compose(self) -> ComposeResult:
-        yield Label(self._validate_year(), id="year")
+        yield Label(self._formatted_year, id="year")
         yield Label(self.title, id="title")
         self.__composed = True
 
@@ -261,8 +262,6 @@ class ReferencePicker(Static):
         self.show_chosen_reference_details = show_chosen_reference_details
 
     async def _refresh_choice_task(self) -> None:
-        print("parent", self.parent)
-        print("parent.children", self.parent.children)
         choice_task = await await_me_maybe(self.get_next_choice_task_fn)
         if choice_task is not None:
             self.available_references = choice_task.available_references
@@ -275,7 +274,6 @@ class ReferencePicker(Static):
         self.disabled = True
         if self.current_reference is None:
             raise RuntimeError("No current reference to compare to.")
-        print("set result", self.current_reference)
         self.set_choice_fn(ReferenceChoice(self.current_reference, reference))
         await await_me_maybe(self._refresh_choice_task)
 
