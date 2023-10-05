@@ -8,6 +8,7 @@ import eagerbib.config as cfg
 
 class BaseProcessingCommand(abc.ABC):
     """Base class for processing commands."""
+
     def __init__(self, current_item: dict[str, str]):
         self.current_item = current_item
 
@@ -24,8 +25,13 @@ class UpdateItemProcessingCommand(BaseProcessingCommand):
         current_item (dict[str, str]): The current item in the bibliography.
         new_item (dict[str, str]): The new item to replace the current item with.
     """
-    def __init__(self, current_item: dict[str, str], new_item: dict[str, str],
-                 method: Union[Literal["automated"], Literal["manual"]]):
+
+    def __init__(
+        self,
+        current_item: dict[str, str],
+        new_item: dict[str, str],
+        method: Union[Literal["automated"], Literal["manual"]],
+    ):
         super().__init__(current_item)
 
         # Update id/key of the new item to match the current item.
@@ -47,6 +53,7 @@ class KeepItemProcessingCommand(BaseProcessingCommand):
     Args:
         current_item (dict[str, str]): The current item in the bibliography.
     """
+
     def __init__(self, current_item: dict[str, str]):
         super().__init__(current_item)
 
@@ -80,8 +87,9 @@ def _normalize_preprints(entries: list[dict[str, str]]):
         arxiv_ids = set()
         # Find arXiv IDs in the entry. This pattern was proposed by the rebiber authors.
         for m in re.finditer(
-                r"(arxiv:|arxiv.org\/abs\/|arxiv.org\/pdf\/)([0-9]{4}).([0-9]{5})",
-                entry_str):
+            r"(arxiv:|arxiv.org\/abs\/|arxiv.org\/pdf\/)([0-9]{4}).([0-9]{5})",
+            entry_str,
+        ):
             arxiv_ids.add(f"{m.group(2)}.{m.group(3)}")
         if "eprint" in entry and entry.get("archiveprefix", "").lower() == "arxiv":
             arxiv_ids.add(entry["eprint"])
@@ -134,7 +142,7 @@ def _remove_duplicates(entries: list[dict[str, str]]):
     duplicated_idxs = sorted(duplicated_idx_pairs, key=lambda x: x[1], reverse=True)
     if len(duplicated_idxs) > 0:
         print("Detected duplicate entries:")
-        for (i1, i2) in duplicated_idxs:
+        for i1, i2 in duplicated_idxs:
             print(f"• {entries[i2]['ID']} -> {entries[i1]['ID']}")
             del entries[i2]
 
@@ -156,8 +164,9 @@ def _remove_fields(entries: list[dict[str, str]], fields: list[str]):
                 del entry[fk]
 
 
-def _apply_abbreviations(entries: list[dict[str, str]],
-                         abbreviations: list[cfg.NameNormalizationConfig]):
+def _apply_abbreviations(
+    entries: list[dict[str, str]], abbreviations: list[cfg.NameNormalizationConfig]
+):
     """Applies name_normalizations to the bibliography entries.
 
     Args:
@@ -177,7 +186,9 @@ def _apply_abbreviations(entries: list[dict[str, str]],
             try:
                 re.compile(full_name)
             except re.error:
-                print(f"• Invalid regular expression for {abbreviation.name}: {full_name}")
+                print(
+                    f"• Invalid regular expression for {abbreviation.name}: {full_name}"
+                )
                 sys.exit(-1)
             for entry in entries:
                 for field in ["journal", "booktitle"]:
@@ -185,8 +196,9 @@ def _apply_abbreviations(entries: list[dict[str, str]],
                         entry[field] = abbreviation.name
 
 
-def process_commands(commands: list[BaseProcessingCommand],
-                     config: cfg.OutputProcessorConfig) -> list[dict[str, str]]:
+def process_commands(
+    commands: list[BaseProcessingCommand], config: cfg.OutputProcessorConfig
+) -> list[dict[str, str]]:
     """Process the commands and return the output bibliography items.
 
     Args:
