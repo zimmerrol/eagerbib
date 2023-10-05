@@ -3,8 +3,8 @@ import os
 
 import dataclass_wizard
 
-from . import utils as ut
 from .. import utils as but
+from . import utils as ut
 
 # The root directory of the app.
 _basefolder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,7 +17,7 @@ class OnlineUpdaterConfig:
     enable: bool = ut.cli_parameter(
         "e",
         default=True,
-        help="True to enable the online/semi-automated " "reference updater.",
+        help="Enable/Disable the online/semi-automated reference updater.",
     )
     n_suggestions: int = ut.cli_parameter(
         "n", default=3, help="Number of suggestions per service to show."
@@ -50,8 +50,10 @@ class OutputProcessorConfig:
         help="The list of conference name data.",
     )
     deduplicate: bool = ut.cli_parameter(
-        "d", default=True, help="True to remove entries that are duplicates based on"
-        "either their properties or their ID."
+        "d",
+        default=True,
+        help="True to remove entries that are duplicates based on"
+        "either their properties or their ID.",
     )
     shorten: bool = ut.cli_parameter(
         "s", default=False, help="True to shorten the conference names."
@@ -64,7 +66,7 @@ class OutputProcessorConfig:
     remove_fields: list[str] = ut.cli_parameter(
         "r",
         default_factory=list,
-        help="A list of fields to remove from the output entries.",
+        help="A list of fields (entered as a whitespace separated list) to remove from the output entries.",
     )
     normalize_preprints: bool = ut.cli_parameter(
         "np",
@@ -81,12 +83,17 @@ class BaseConfig(dataclass_wizard.YAMLWizard):
 @dataclasses.dataclass
 class DBLPCrawlerConfig(BaseConfig):
     """A config object for the DBLP crawler."""
+
     venues: list[str] = ut.cli_parameter(
-        "v", default_factory=list, help="The DBLP identifiers of the venues to crawl.")
+        "v", default_factory=list, help="The DBLP identifiers of the venues to crawl."
+    )
     output: str = ut.cli_parameter("o", required=True, help="The output directory.")
     create_targz: bool = ut.cli_parameter(
-        "t", default=True, help="True to create a tar.gz file from the output "
-                                "directory. For easier distribution.")
+        "t",
+        default=True,
+        help="True to create a tar.gz file from the output "
+        "directory. For easier distribution.",
+    )
 
 
 @dataclasses.dataclass
