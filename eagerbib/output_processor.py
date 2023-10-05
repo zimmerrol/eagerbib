@@ -83,10 +83,13 @@ def _normalize_preprints(entries: list[dict[str, str]]):
                 r"(arxiv:|arxiv.org\/abs\/|arxiv.org\/pdf\/)([0-9]{4}).([0-9]{5})",
                 entry_str):
             arxiv_ids.add(f"{m.group(2)}.{m.group(3)}")
+        if "eprint" in entry and entry.get("archiveprefix", "").lower() == "arxiv":
+            arxiv_ids.add(entry["eprint"])
         if len(arxiv_ids) > 1:
             print(f"• Cannot normalize {entry['ID']}: conflicting arXiv IDs found.")
         elif len(arxiv_ids) == 1:
-            new_entry = {k: entry[k] for k in ["ID", "ENTRYTYPE", "author", "title"]}
+            new_entry = {k: entry[k] for k in ["ID", "author", "title"]}
+            new_entry["ENTRYTYPE"] = "article"
             new_entry["eprint"] = arxiv_ids.pop()
             new_entry["journal"] = "arXiv preprint"
             new_entry["volume"] = f"abs/{new_entry['eprint']}"
