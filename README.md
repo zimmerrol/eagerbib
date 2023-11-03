@@ -1,5 +1,9 @@
 # eagerbib: Updating and normalizing your BibTex bibliography.
 
+<p align="center">
+  <img src="https://github.com/zimmerrol/eagerbib/raw/etc/logo-small.png" />
+</p>
+
 ## What is eagerbib?
 eagerbib is a command line tool to update and normalize your BibTeX bibliography.
 Specifically, you can use eagerbib to:
@@ -13,7 +17,7 @@ the _online_ methods are only semi-automatic. That is, eagerbib will suggest pos
 updates to you, but you have to manually confirm them. To make this process as comfortable
 as possible, eagerbib features an easy to use interactive command line interface:
 
-![eagerbib demo](demo.gif)  
+![eagerbib demo](etc/demo.gif)  
 
 
 ## Installation
