@@ -1,7 +1,7 @@
 # eagerbib: Updating and normalizing your BibTex bibliography.
 
 <p align="center">
-  <img src="https://github.com/zimmerrol/eagerbib/raw/etc/logo-small.png" />
+  <img src="https://raw.githubusercontent.com/zimmerrol/eagerbib/master/etc/logo-small.png" />
 </p>
 
 ## What is eagerbib?
