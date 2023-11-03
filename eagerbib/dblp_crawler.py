@@ -44,7 +44,8 @@ def get_all_occurrences_of_venue(venue_key: str) -> list[Optional[str]]:
         Returns:
             Optional[str]: The BHT identifier or None if it could not be obtained.
         """
-        time.sleep(1)
+        # Sleep to avoid overloading the server.
+        time.sleep(3)
         return get_bht_identifier_from_dblp_url(dblp_url)
 
     while True:
@@ -59,12 +60,17 @@ def get_all_occurrences_of_venue(venue_key: str) -> list[Optional[str]]:
                 bhts = [
                     _get_bht(url)
                     for url in tqdm.tqdm(
-                        urls, desc="Obtaining BHT identifiers", position=1, leave=False
+                        urls,
+                        desc=f"Obtaining BHT identifiers for {venue_key}",
+                        position=1,
+                        leave=False,
                     )
                 ]
 
                 return bhts
-        time.sleep(1)
+            else:
+                print("Error: ", data["result"]["status"]["@code"])
+        time.sleep(5)
 
 
 @contextlib.contextmanager
@@ -125,7 +131,7 @@ def download_bibtex_of_venue_occurrence(
                 else:
                     time.sleep(1)
             except requests.exceptions.RequestException:
-                time.sleep(1)
+                time.sleep(5)
         return None
 
     # The dblp API can only return 1000 entries at a time. We need to paginate.
@@ -194,8 +200,10 @@ def get_bht_identifier_from_dblp_url(
 def main():
     config = cfg.get_config(cfg.DBLPCrawlerConfig)
 
-    print("Crawling dblp.org for information on the following venues: "
-          f"{', '.join(config.venues)}.")
+    print(
+        "Crawling dblp.org for information on the following venues: "
+        f"{', '.join(config.venues)}."
+    )
 
     if not os.path.exists(config.output):
         os.makedirs(config.output)
@@ -207,14 +215,21 @@ def main():
             )
 
     for venue in tqdm.tqdm(config.venues, desc="Processing venues", position=0):
+        # Sleep to avoid overloading the server.
+        time.sleep(5)
         occurrences = get_all_occurrences_of_venue(venue)
         # Filter out None values for which no BHT key could be extracted.
         # This should rarely/never happen.
         occurrences = [oc for oc in occurrences if oc is not None]
         for oc in tqdm.tqdm(
-            occurrences, desc="Downloading BibTex data", position=1, leave=False
+            occurrences,
+            desc=f"Downloading BibTex data for {venue}",
+            position=1,
+            leave=False,
         ):
             with redirect_to_tqdm():
+                # Sleep to avoid overloading the server.
+                time.sleep(5)
                 download_bibtex_of_venue_occurrence(oc, config.output)
 
     print("Creating cache.json.gz file.")
@@ -225,10 +240,10 @@ def main():
         with tarfile.open(config.output + ".tar.gz", "w:gz") as tar:
             for fn in glob.glob(os.path.join(config.output, "*.bib")):
                 tar.add(fn, arcname=os.path.basename(fn))
-            tar.add(os.path.join(config.output, "cache.json.gz"),
-                    arcname="cache.json.gz")
+            tar.add(
+                os.path.join(config.output, "cache.json.gz"), arcname="cache.json.gz"
+            )
 
 
 if __name__ == "__main__":
     main()
-
