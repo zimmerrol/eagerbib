@@ -77,7 +77,14 @@ class CrossrefLookupService(LookupService):
 
                 if response.status == 200:
                     response_data = await response.text()
-                    return bibtexparser.loads(response_data, bibparser).entries[0]
+                    entries = bibtexparser.loads(response_data, bibparser).entries
+                    # Sometimes, online services such as Crossref return invalid
+                    # BibTeX entries.
+                    if len(entries) > 0:
+                        return entries[0]
+                    else:
+                        warnings.warn("No valid BibTeX entry found.")
+                        return None
                 else:
                     warnings.warn(
                         f"Unknown error occurred. Status code {response.status}."
