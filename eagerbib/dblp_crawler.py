@@ -70,6 +70,12 @@ def get_all_occurrences_of_venue(venue_key: str) -> list[Optional[str]]:
                 return bhts
             else:
                 print("Error: ", data["result"]["status"]["@code"])
+        elif response.status_code == 429:
+            if response.headers.get("Retry-After"):
+                time.sleep(int(response.headers["Retry-After"]))
+                warnings.warn(
+                    f"Rate limited. Retrying after {response.headers['Retry-After']} "
+                    "seconds.")
         time.sleep(5)
 
 
@@ -128,6 +134,12 @@ def download_bibtex_of_venue_occurrence(
                 response = requests.get(url)
                 if response.status_code == 200:
                     return response.text
+                elif response.status_code == 429:
+                    if response.headers.get("Retry-After"):
+                        time.sleep(int(response.headers["Retry-After"]))
+                        warnings.warn(
+                            "Rate limited. Retrying after "
+                            f"{response.headers['Retry-After']} seconds.")
                 else:
                     time.sleep(1)
             except requests.exceptions.RequestException:
@@ -143,6 +155,7 @@ def download_bibtex_of_venue_occurrence(
         start_idx += 1000
 
         response = fetch(url, n_max_attempts)
+        time.sleep(3)
         if response is None:
             warnings.warn(
                 f"Max attempts reached for `{venue_occurrence_key}`. Skipping. "
@@ -216,7 +229,7 @@ def main():
 
     for venue in tqdm.tqdm(config.venues, desc="Processing venues", position=0):
         # Sleep to avoid overloading the server.
-        time.sleep(5)
+        time.sleep(30)
         occurrences = get_all_occurrences_of_venue(venue)
         # Filter out None values for which no BHT key could be extracted.
         # This should rarely/never happen.
