@@ -3,6 +3,7 @@ import re
 import sys
 from datetime import datetime
 from typing import Literal, Union
+import warnings
 import eagerbib.config as cfg
 
 
@@ -83,7 +84,8 @@ def _normalize_preprints(entries: list[dict[str, str]]):
     print("Normalizing preprints.")
     for i in range(len(entries)):
         entry = entries[i]
-        entry_str = " ".join(transform_reference_dict_to_lines(entry)).lower()
+        filtered_entry = {k: entry[k] for k in entry if k not in ["abstract"]}
+        entry_str = " ".join(transform_reference_dict_to_lines(filtered_entry)).lower()
         arxiv_ids = set()
         # Find arXiv IDs in the entry. This pattern was proposed by the rebiber authors.
         for m in re.finditer(
@@ -94,9 +96,14 @@ def _normalize_preprints(entries: list[dict[str, str]]):
         if "eprint" in entry and entry.get("archiveprefix", "").lower() == "arxiv":
             arxiv_ids.add(entry["eprint"])
         if len(arxiv_ids) > 1:
-            print(f"• Cannot normalize {entry['ID']}: conflicting arXiv IDs found.")
+            print(f"• Cannot normalize {entry['ID']}: conflicting arXiv IDs ({list(arxiv_ids)})found.")
         elif len(arxiv_ids) == 1:
-            new_entry = {k: entry[k] for k in ["ID", "author", "title"]}
+            new_entry = {}
+            for k in ["ID", "author", "title"]:
+                if k in entry:
+                    new_entry[k] = entry[k]
+                else:
+                    warnings.warn(f"Missing field {k} in {entry['ID']}.")
             new_entry["ENTRYTYPE"] = "article"
             new_entry["eprint"] = arxiv_ids.pop()
             new_entry["journal"] = "arXiv preprint"
@@ -120,8 +127,6 @@ def _remove_duplicates(entries: list[dict[str, str]]):
     for i1 in range(len(entries)):
         for i2 in range(i1 + 1, len(entries)):
             if entries[i1]["ID"] == entries[i2]["ID"]:
-                print(entries[i1])
-                print(entries[i2])
                 duplicated_idxs.append(i2)
     if len(duplicated_idxs) > 0:
         print("Detected duplicate keys:")
