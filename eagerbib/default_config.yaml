@@ -28,6 +28,7 @@ output_processor:
       alternative_names:
         - "Proceedings of the .* International Conference on Machine Learning.*"
         - "Machine Learning, Proceedings of the .* International Conference"
+        - "International Conference on Machine Learning"
     - name: "ICLR"
       alternative_names:
         - ".* International Conference on Learning Representations"
