@@ -141,7 +141,7 @@ def download_bibtex_of_venue_occurrence(
                             "Rate limited. Retrying after "
                             f"{response.headers['Retry-After']} seconds.")
                 else:
-                    time.sleep(1)
+                    time.sleep(2)
             except requests.exceptions.RequestException:
                 time.sleep(5)
         return None
@@ -155,7 +155,7 @@ def download_bibtex_of_venue_occurrence(
         start_idx += 1000
 
         response = fetch(url, n_max_attempts)
-        time.sleep(3)
+        time.sleep(5)
         if response is None:
             warnings.warn(
                 f"Max attempts reached for `{venue_occurrence_key}`. Skipping. "
@@ -191,8 +191,14 @@ def get_bht_identifier_from_dblp_url(
             r'<a class="toc-link" href="(https?://[^\s"]+)">\[contents\]<\/a>'
         )
         with requests.get(dblp_url, stream=True) as r:
-            if r.status_code != 200:
-                time.sleep(1)
+            if r.status_code == 429:
+                if r.headers.get("Retry-After"):
+                    time.sleep(int(r.headers["Retry-After"]))
+                    warnings.warn(
+                        f"Rate limited. Retrying after {r.headers['Retry-After']} "
+                        "seconds.")
+            elif r.status_code != 200:
+                time.sleep(5)
                 continue
             iterator = r.iter_content(chunk_size=1024)
             for bytes in iterator:
@@ -242,7 +248,7 @@ def main():
         ):
             with redirect_to_tqdm():
                 # Sleep to avoid overloading the server.
-                time.sleep(5)
+                time.sleep(10)
                 download_bibtex_of_venue_occurrence(oc, config.output)
 
     print("Creating cache.json.gz file.")
