@@ -7,6 +7,7 @@ import os
 import sys
 from typing import Optional
 import copy
+import multiprocessing as mp
 
 import bibtexparser
 from bibtexparser.bparser import BibDatabase
@@ -17,6 +18,20 @@ import eagerbib.lookup_service as lus
 import eagerbib.manual_reference_updater as mru
 import eagerbib.output_processor as op
 import eagerbib.utils as ut
+
+
+def __parse_bibtex_file(fn: str) -> dict[str, dict[str, str]]:
+    bibparser = bibtexparser.bparser.BibTexParser(ignore_nonstandard_types=False)
+    bibparser.expect_multiple_parse = False
+
+    with open(fn, "r") as f:
+        bibtexparser.load(f, bibparser)
+
+    bibliographies = {}
+    for entry in bibparser.bib_database.entries:
+        bibliographies[ut.cleanup_title(entry["title"])] = entry
+
+    return bibliographies
 
 
 def load_reference_bibliography(bibliography_dir: str) -> dict[str, list[str]]:
@@ -58,20 +73,21 @@ def load_reference_bibliography(bibliography_dir: str) -> dict[str, list[str]]:
                     return cache["bibliographies"]
                 # Otherwise, build new cache from scratch and overwrite the old one.
 
+    print("Updating bibliography cache as eagerbib database has been updated recently.")
+
     bibliographies = {}
-    bibparser = bibtexparser.bparser.BibTexParser(ignore_nonstandard_types=False)
-    bibparser.expect_multiple_parse = True
 
-    pbar = tqdm(filenames, desc="Parsing and preprocessing BibTeX files.")
-    for fn in pbar:
-        with open(fn, "r") as f:
-            bibtexparser.load(f, bibparser)
+    with mp.Pool(max(1, mp.cpu_count() - 1)) as pool:
+        pbar = tqdm(
+            pool.imap(__parse_bibtex_file, filenames),
+            desc="Parsing and preprocessing BibTeX files.",
+            total=len(filenames),
+            dynamic_ncols=True)
+        for d in pbar:
+            bibliographies |= d
             pbar.set_postfix_str(
-                "Processed {0} entries.".format(len(bibparser.bib_database.entries))
+                "Processed {0} entries.".format(len(bibliographies))
             )
-
-    for entry in bibparser.bib_database.entries:
-        bibliographies[ut.cleanup_title(entry["title"])] = entry
 
     # Save the cache.
     with gzip.open(cache_fn, "w") as cache_f:
