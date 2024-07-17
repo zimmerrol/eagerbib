@@ -147,8 +147,10 @@ def _remove_duplicates(entries: list[dict[str, str]]):
     duplicated_idxs = sorted(duplicated_idx_pairs, key=lambda x: x[1], reverse=True)
     if len(duplicated_idxs) > 0:
         print("Detected duplicate entries:")
-        for i1, i2 in duplicated_idxs:
-            print(f"• {entries[i2]['ID']} -> {entries[i1]['ID']}")
+        duplicated_keys = [(entries[i1]['ID'], entries[i2]['ID'])
+                           for i1, i2 in duplicated_idxs]
+        for (i1, i2), (id1, id2) in zip(duplicated_idxs, duplicated_keys):
+            print(f"• {id2} -> {id1}")
             del entries[i2]
 
 
